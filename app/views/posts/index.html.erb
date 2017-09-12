@@ -1,18 +1,21 @@
 <div class="jumbotron" style="background-color: rgba(46, 195, 204, 0.25);">
   <h1>Rails with Ajax</h1>
-  <p>...</p>
+  <p><a href="https://www.topdan.com/ruby-on-rails/simple-infinite-scrolling.html" style="text-decoration: none;">...</a></p>
   <!-- Button trigger modal -->
   <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#newPost">
     New Post
   </button>
 </div>
 
-<br>
-<br>
-
 <div class="row" id="container_posts">
   <%= render @posts %>
 </div>
+
+<% unless @posts.current_page == @posts.total_pages %>
+  <p id="view-more">
+    <%= link_to 'View More', url_for(page: @posts.current_page + 1), remote: true %>
+  </p>
+<% end %>
 
 <!-- Modal -->
 <%= form_for(@post, remote: true) do |f| %>
