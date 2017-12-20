@@ -25,7 +25,7 @@ set :puma_error_log,  "#{release_path}/log/puma.error.log"
 set :ssh_options,     { forward_agent: true, user: fetch(:user), keys: %w(~/.ssh/id_rsa.pub) }
 set :puma_preload_app, true
 set :puma_worker_timeout, nil
-set :puma_init_active_record, true  # Change to false when not using ActiveRecord
+set :puma_init_active_record, false  # Change to false when not using ActiveRecord
 
 set :rollbar_token, '1a1ae3c240bc4d978055d92466c2a8f9'
 set :rollbar_env, proc { fetch :stage }
@@ -39,7 +39,7 @@ set :rollbar_role, proc { :app }
 # set :keep_releases, 5
 
 ## Linked Files & Directories (Default None):
-set :linked_files, %w{config/application.yml config/database.yml config/secrets.yml}
+set :linked_files, %w{config/database.yml}
 # set :linked_dirs,  %w{bin log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}
 
 namespace :puma do
