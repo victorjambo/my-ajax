@@ -25,22 +25,18 @@ set :puma_error_log,  "#{release_path}/log/puma.error.log"
 set :ssh_options,     { forward_agent: true, user: fetch(:user), keys: %w(~/.ssh/id_rsa.pub) }
 set :puma_preload_app, true
 set :puma_worker_timeout, nil
+set :puma_conf, "#{shared_path}/config/puma.rb"
 set :puma_init_active_record, false  # Change to false when not using ActiveRecord
 
 set :rollbar_token, '1a1ae3c240bc4d978055d92466c2a8f9'
 set :rollbar_env, proc { fetch :stage }
 set :rollbar_role, proc { :app }
 
-## Defaults:
-# set :scm,           :git
-# set :branch,        :master
-# set :format,        :pretty
-# set :log_level,     :debug
-# set :keep_releases, 5
+set :linked_files, fetch(:linked_files, []).push('config/database.yml', 'config/secrets.yml', 'config/puma.rb')
+set :linked_dirs, fetch(:linked_dirs, []).push('log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'vendor/bundle', 'public/system', 'public/uploads')
 
-## Linked Files & Directories (Default None):
-set :linked_files, %w{config/database.yml}
-# set :linked_dirs,  %w{bin log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}
+set :config_example_suffix, '.example'
+set :config_files, %w{config/database.yml config/secrets.yml}
 
 namespace :puma do
   desc 'Create Directories for Puma Pids and Socket'
@@ -66,21 +62,7 @@ namespace :deploy do
     end
   end
 
-  task :copy_config do
-    on release_roles :app do |role|
-      fetch(:linked_files).each do |linked_file|
-        user = role.user + "@" if role.user
-        hostname = role.hostname
-        linked_files(shared_path).each do |file|
-          run_locally do
-            execute :rsync, "config/#{file.to_s.gsub(/.*\/(.*)$/,"\\1")}", "#{user}#{hostname}:#{file.to_s.gsub(/(.*)\/[^\/]*$/, "\\1")}/"
-          end
-        end
-      end
-    end
-  end
-  before "deploy:check:linked_files", "deploy:copy_config"
-
+  
   desc 'Initial Deploy'
   task :initial do
     on roles(:app) do
@@ -88,6 +70,12 @@ namespace :deploy do
       invoke 'deploy'
     end
   end
+
+  before 'check:linked_files', 'config:push'
+  before 'check:linked_files', 'puma:config'
+  before 'check:linked_files', 'puma:nginx_config'
+  before 'deploy:migrate', 'deploy:db:create'
+  after 'puma:smart_restart', 'nginx:restart'
 
 
   before :starting,     :check_revision
