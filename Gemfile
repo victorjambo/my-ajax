@@ -7,7 +7,7 @@ end
 
 gem 'kaminari', '~> 1.0', '>= 1.0.1'
 gem 'faker', '~> 1.8', '>= 1.8.4'
-gem 'pg'
+gem 'pg', '~> 0.21.0'
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
